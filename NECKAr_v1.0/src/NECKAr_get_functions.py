@@ -27,11 +27,13 @@ __author__ = 'jgeiss'
 #######################################################
 #This code find all the auxillary information which is to be stored with each entity of all listed categories
 
+import typing
+
 ######################################################################################################
 # Common Fields
 ######################################################################################################
 
-def get_WDid(json_object):
+def get_WDid(json_object: typing.Dict[str, str]) -> str:
     """
     Gets Wikidata id of item
 
@@ -42,7 +44,7 @@ def get_WDid(json_object):
     return id
 
 
-def get_label(json_object, id):
+def get_label(json_object: typing.Dict[str, str], id: str) -> typing.Union[str, None]:
     """Gets en label of item
 
     :param json_object: entity object <class 'dict'>
@@ -58,10 +60,10 @@ def get_label(json_object, id):
             norm_name = labels["en-gb"]["value"]
         elif "en-ca" in labels:
             norm_name = labels["en-ca"]["value"]
-        elif "de" in labels:  #if English label does not exists use German
+        elif "de" in labels:  #if English label does not exist use German
             norm_name = labels["de"]["value"]
         elif labels.values():
-            #norm_name=id   						#if no English or German label exists use id
+            #norm_name=id   						#if no English or German label exist use id
             norm_name = list(labels.values())[0]["value"]
         else:
             norm_name = id
@@ -70,20 +72,20 @@ def get_label(json_object, id):
     return norm_name
 
 
-def get_description(json_obejct):
+def get_description(json_object: typing.Dict[str, str]) -> typing.Union[str, None]:
     """Gets English description of an item
 
-    :param json_obejct: entity object <class 'dict'>
+    :param json_object: entity object <class 'dict'>
     :return: description <class 'string'> | None
     """
     description = None
-    if "descriptions" in json_obejct:
-        if "en" in json_obejct["descriptions"]:
-            description = json_obejct["descriptions"]["en"]["value"]
+    if "descriptions" in json_object:
+        if "en" in json_object["descriptions"]:
+            description = json_object["descriptions"]["en"]["value"]
     return description
 
 
-def get_en_sitelink(json_object):
+def get_en_sitelink(json_object: typing.Dict[str, str]) -> typing.Union[str, None]:
     """Gets link of an item to the English Wikipedia
 
     :param json_object:  entity object <class 'dict'>
@@ -95,7 +97,7 @@ def get_en_sitelink(json_object):
             en_sitelink = json_object["sitelinks"]["enwiki"]["title"]
     return en_sitelink
 
-def get_de_sitelink(json_object):
+def get_de_sitelink(json_object: typing.Dict[str, str]) -> typing.Union[str, None]:
     """Gets link of an item to the German Wikipedia
 
     :param json_object: entity object <class 'dict'>
@@ -118,7 +120,7 @@ def get_de_sitelink(json_object):
 #Person
 #########################
 
-def get_datebirth(json_object):
+def get_datebirth(json_object: typing.Dict[str, str]) -> typing.Union[str, None]:
     """Gets date of birth of a person
     This function calls the functions get_datelife with thh property P569
 
@@ -127,7 +129,7 @@ def get_datebirth(json_object):
     """
     return get_datelife(json_object, "P569")
 
-def get_datedeath(json_object):
+def get_datedeath(json_object: typing.Dict[str, str]) -> typing.Union[str, None]:
     """Gets date of death of a person
     This function calls the functions get_datelife with thh property P570
 
@@ -137,7 +139,7 @@ def get_datedeath(json_object):
     return get_datelife(json_object, "P570")
 
 
-def get_datelife(json_object, P):
+def get_datelife(json_object: typing.Dict[str, str], P: str) -> typing.Union[str, None]:
     """Gets dates for person
         this only returns a date if it is an explicit date of birth or dead, no latest possible date(P1326) or range (befor/after)
 
@@ -187,7 +189,7 @@ gender_dict = {6581097: "male",
                746411: "kathoey",
                350374: "fakaleiti",
                660882: "hijra"}
-def get_gender(json_object):
+def get_gender(json_object: typing.Dict[str, str]) -> typing.Union[str, int, None]:
     """
     Gets gender of person ("P21")
 
@@ -206,7 +208,7 @@ def get_gender(json_object):
     gender=gender_dict.get(gender_id,gender_id)
     return gender
 
-def get_occupation(json_object):
+def get_occupation(json_object: typing.Dict[str, str]) -> str:
     """Gets occupation of person ("P106")
 
     :param json_object: entity object <class 'dict'>
@@ -222,7 +224,7 @@ def get_occupation(json_object):
                         occupation.append(props["mainsnak"]["datavalue"]["value"]["numeric-id"])
     return occupation
 
-def get_alias_list(json_object):
+def get_alias_list(json_object: typing.Dict[str, str]) -> typing.List[str]:
     """Gets aliases and other language labels of a person
 
     :param json_object: entity object <class 'dict'>
@@ -251,8 +253,8 @@ def get_alias_list(json_object):
 #########################
 #Location
 #########################
-def get_location_inside(json_object):
-    """gets the id of the country (P17) and or continent (P30) the enities is in
+def get_location_inside(json_object: typing.Dict[str, str]) -> typing.Tuple[typing.List[int], typing.List[int]]:
+    """gets the id of the country (P17) and or continent (P30) the entities is in
 
     :param json_object: entity object <class 'dict'>
     :return: tuple of id of country (in_country) and id of continent (in_continent) (both lists of int)
@@ -286,7 +288,7 @@ def get_poi(json_object,country_subclass,settlement_subclass, city_subclass, sea
      :param mountain_subclass: list of all mountain (Q8502) subclasses
      :param mountainr_subclass: list of all mountain range (Q41437459) subclasses
      :param state_subclass: list of all state (Q7275) subclasses
-     :param hgte_subclass: list of all human geographic territorail entity (Q15642541) subclasses
+     :param hgte_subclass: list of all human geographic territorial entity (Q15642541) subclasses
      :return: list of types (list of strings)
     """
 

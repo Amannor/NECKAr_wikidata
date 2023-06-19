@@ -29,14 +29,15 @@ __author__ = 'jgeiss'
 
 import NECKAr_get_functions as get_functions
 import bson.objectid
+import typing
 
 ######################################################################################################
 # Common Entries
 ######################################################################################################
-def write_common_fields(item):
+def write_common_fields(item: typing.Dict[str, str]) -> typing.Dict[str, str]:
     """
-    All entities have a set of comon inforamtion: id, label, description, en_sitelinkk and de_sitelink.
-    This function extracts these information from the dump and stores them in a dictionary.
+    All entities have a set of common information: id, label, description, en_sitelink and de_sitelink.
+    This function extracts that information from the dump and stores it in a dictionary.
 
     :param item: entity object <class 'dict'>
     :return: entry: dictionary with information about the entry <class 'dict'>
