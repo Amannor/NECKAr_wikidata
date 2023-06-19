@@ -1,8 +1,8 @@
 #! /usr/bin/env python3
 # This Python file uses the following encoding: utf-8
+# Taken from: https://event.ifi.uni-heidelberg.de/?page_id=532
 
 __author__ = 'jgeiss'
-
 
 #############################################################################
 # authors: Johanna Geiß, Heidelberg University, Germany                     #
@@ -31,6 +31,7 @@ __author__ = 'jgeiss'
 #############################################################################
 
 ### Importing modules
+import inspect
 import sys
 import configparser
 from pymongo import *
@@ -60,7 +61,7 @@ def read_config(config):
     try:
         client=MongoClient(host,port)
     except errors.ConnectionFailure:
-        print("Connection to the database cannot be made. Plase check the config file")
+        print("Connection to the database cannot be made. Please check the config file")
 
     db_read_name=config.get('Database','db_dump')
     db_write_name=config.get('Database','db_write')
@@ -92,7 +93,7 @@ def find_persons(output_collection, input_collection):
     output_collection.remove({"neClass": "PER"})
     print_info("--- DONE")
     person_cursor=input_collection.find({"$and":[{"type":"item"},{"claims.P31.mainsnak.datavalue.value.numeric-id":5}]})
-    print_info("Begining of person-loop")
+    print_info("Beginning of person-loop")
     for item in person_cursor:
         entry=write_functions.write_common_fields(item)
         entry["neClass"]="PER"
@@ -301,6 +302,11 @@ def find_organizations(output_collection, input_collection):
         bulk.execute()
 ########################################################################################################################
 
+def find_event(output_collection, input_collection):
+    func_name = inspect.stack()[0][3]
+    print(f"{func_name} not implemented yet - come write some code!")
+    pass
+
 
 if __name__ == "__main__":
     """NECKAr: Named Entity Classifier for Wikidata
@@ -320,3 +326,5 @@ if __name__ == "__main__":
         find_locations(output_collection, input_collection)
     if config.getboolean('Search_Flags','organization'):
         find_organizations(output_collection, input_collection)
+    if config.getboolean('Search_Flags','event'):
+        find_event(output_collection, input_collection)
