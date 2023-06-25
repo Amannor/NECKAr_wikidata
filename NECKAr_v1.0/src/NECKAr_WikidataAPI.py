@@ -3,6 +3,7 @@
 
 __author__ = 'jgeiss'
 
+import typing
 
 #############################################################################
 # authors: Johanna Geiß, Heidelberg University, Germany                     #
@@ -29,7 +30,10 @@ __author__ = 'jgeiss'
 from requests import get
 
 
-def get_wikidata_item_tree_item_idsSPARQL(root_items, forward_properties=None, backward_properties=None):
+def get_wikidata_item_tree_item_idsSPARQL(root_items: typing.Iterable[int],
+                                          forward_properties: typing.Optional[typing.Iterable[int]]=None,
+                                          backward_properties: typing.Optional[typing.Iterable[int]]=None)\
+        -> typing.List[int]:
     """Return ids of WikiData items, which are in the tree spanned by the given root items and claims relating them
         to other items.
 

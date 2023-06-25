@@ -20,7 +20,7 @@ print("NECKAR: WD2DB: connecting to MongoDB")
 try:
     client = pymongo.MongoClient(host,port)
 except errors.ConnectionFailure:
-        print("Connection to the database cannot be made. Plase check the config file")
+        print("Connection to the database cannot be made. Please check the config file")
 
 db = client[db]
 collection = db[collection]

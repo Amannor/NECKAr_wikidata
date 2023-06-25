@@ -44,7 +44,7 @@ def get_WDid(json_object: typing.Dict[str, str]) -> str:
     return id
 
 
-def get_label(json_object: typing.Dict[str, str], id: str) -> typing.Union[str, None]:
+def get_label(json_object: typing.Dict[str, object], id: str) -> typing.Optional[str]:
     """Gets en label of item
 
     :param json_object: entity object <class 'dict'>
@@ -72,7 +72,7 @@ def get_label(json_object: typing.Dict[str, str], id: str) -> typing.Union[str, 
     return norm_name
 
 
-def get_description(json_object: typing.Dict[str, str]) -> typing.Union[str, None]:
+def get_description(json_object: typing.Dict[str, str]) -> typing.Optional[str]:
     """Gets English description of an item
 
     :param json_object: entity object <class 'dict'>
@@ -85,7 +85,7 @@ def get_description(json_object: typing.Dict[str, str]) -> typing.Union[str, Non
     return description
 
 
-def get_en_sitelink(json_object: typing.Dict[str, str]) -> typing.Union[str, None]:
+def get_en_sitelink(json_object: typing.Dict[str, str]) -> typing.Optional[str]:
     """Gets link of an item to the English Wikipedia
 
     :param json_object:  entity object <class 'dict'>
@@ -97,7 +97,7 @@ def get_en_sitelink(json_object: typing.Dict[str, str]) -> typing.Union[str, Non
             en_sitelink = json_object["sitelinks"]["enwiki"]["title"]
     return en_sitelink
 
-def get_de_sitelink(json_object: typing.Dict[str, str]) -> typing.Union[str, None]:
+def get_de_sitelink(json_object: typing.Dict[str, str]) -> typing.Optional[str]:
     """Gets link of an item to the German Wikipedia
 
     :param json_object: entity object <class 'dict'>
@@ -120,7 +120,7 @@ def get_de_sitelink(json_object: typing.Dict[str, str]) -> typing.Union[str, Non
 #Person
 #########################
 
-def get_datebirth(json_object: typing.Dict[str, str]) -> typing.Union[str, None]:
+def get_datebirth(json_object: typing.Dict[str, str]) -> typing.Optional[str]:
     """Gets date of birth of a person
     This function calls the functions get_datelife with thh property P569
 
@@ -129,7 +129,7 @@ def get_datebirth(json_object: typing.Dict[str, str]) -> typing.Union[str, None]
     """
     return get_datelife(json_object, "P569")
 
-def get_datedeath(json_object: typing.Dict[str, str]) -> typing.Union[str, None]:
+def get_datedeath(json_object: typing.Dict[str, str]) -> typing.Optional[str]:
     """Gets date of death of a person
     This function calls the functions get_datelife with thh property P570
 
@@ -139,7 +139,7 @@ def get_datedeath(json_object: typing.Dict[str, str]) -> typing.Union[str, None]
     return get_datelife(json_object, "P570")
 
 
-def get_datelife(json_object: typing.Dict[str, str], P: str) -> typing.Union[str, None]:
+def get_datelife(json_object: typing.Dict[str, str], P: str) -> typing.Optional[str]:
     """Gets dates for person
         this only returns a date if it is an explicit date of birth or dead, no latest possible date(P1326) or range (befor/after)
 
@@ -275,7 +275,10 @@ def get_location_inside(json_object: typing.Dict[str, str]) -> typing.Tuple[typi
     return in_country, in_continent
 
 
-def get_poi(json_object,country_subclass,settlement_subclass, city_subclass, sea_subclass, river_subclass, mountain_subclass, mountainr_subclass, state_subclass,hgte_subclass):
+def get_poi(json_object: typing.Dict[str, object], country_subclass: typing.List[int], settlement_subclass: typing.List[int],
+            city_subclass: typing.List[int], sea_subclass: typing.List[int], river_subclass: typing.List[int],
+            mountain_subclass: typing.List[int], mountainr_subclass: typing.List[int], state_subclass: typing.List[int],
+            hgte_subclass: typing.List[int]) -> typing.List[str]:
     """
      gets the location type of the entity
 

@@ -41,10 +41,28 @@ from NECKAr_WikidataAPI import get_wikidata_item_tree_item_idsSPARQL
 #from  NECKAr_wikidata_processor import WikiDataProcessor
 import NECKAr_write_functions as write_functions
 
+
+LABELS_TO_WIKIDATA_INT_IDS = {
+    'ANG': ['Q315'],
+    'DUC': ['Q431289'],
+    'EVE': ['Q1656682'],
+    'FAC': ['Q13226383'],
+    'GPE': ['LOC'], #Stands for GeoPolitical Entitiy. Most are locations (LOC) but not only so need to add more stuff to the list
+    'INFORMAL': [],#['P1449'],
+    'LOC': ['Q115095765'],
+    'MISC': [], #Should be ignored until further notice, here for completeness
+    'ORG': ['Q43229'],
+    'PER': ['Q5'],
+    'TIMEX': ['Q11471'],
+    'TTL': ['Q214339', 'Q177053'],
+    'WOA': ['Q386724']
+    }
+
+
 def print_info(info):
     print("INFO\tNECKAr:\t",info)
 
-def read_config(config):
+def read_config(config: configparser.ConfigParser):
     """Reads the configuration file NECKAr.cfg
 
     :param config: ConfigParser Object
@@ -165,8 +183,8 @@ def find_locations(output_collection, input_collection):
     state_subclass = get_wikidata_item_tree_item_idsSPARQL([7275], backward_properties=[279])
     city_subclass = get_wikidata_item_tree_item_idsSPARQL([515], backward_properties=[279])
     river_subclass = get_wikidata_item_tree_item_idsSPARQL([4022], backward_properties=[279])
-    mountain_subclass= get_wikidata_item_tree_item_idsSPARQL([8502], backward_properties=[279])
-    mountainr_subclass= get_wikidata_item_tree_item_idsSPARQL([1437459], backward_properties=[279])
+    mountain_subclass = get_wikidata_item_tree_item_idsSPARQL([8502], backward_properties=[279])
+    mountainr_subclass = get_wikidata_item_tree_item_idsSPARQL([1437459], backward_properties=[279])
     #POI_subclass= WikiDataProcessor.get_wikidata_item_tree_item_idsSPARQL([XXX], backward_properties=[279])
     hgte_subclass= get_wikidata_item_tree_item_idsSPARQL([15642541], backward_properties=[279])
 
@@ -178,7 +196,7 @@ def find_locations(output_collection, input_collection):
                                            },no_cursor_timeout=True)
     print_info("LOC\tLocations found")
 
-    print_info("LOC\tBegining of location-loop")
+    print_info("LOC\tBeginning of location-loop")
     for item in location_cursor:
         entry=write_functions.write_common_fields(item)
         entry["neClass"]="LOC"
@@ -189,7 +207,8 @@ def find_locations(output_collection, input_collection):
         if len(incontinent) != 0:
             entry["in_continent"] = incountry
 
-        loc_type = get_functions.get_poi(item, country_subclass,settlement_subclass, city_subclass, sea_subclass, river_subclass, mountain_subclass, mountainr_subclass, state_subclass,hgte_subclass)
+        loc_type = get_functions.get_poi(item, country_subclass, settlement_subclass, city_subclass, sea_subclass,
+                                         river_subclass, mountain_subclass, mountainr_subclass, state_subclass, hgte_subclass)
         if len(loc_type) != 0:
             entry["location_type"] = loc_type
 
@@ -232,7 +251,7 @@ def find_locations(output_collection, input_collection):
 
 def find_organizations(output_collection, input_collection):
     """
-    Finds organozations in Wikidata dump and stores them together with additional information in the output collection
+    Finds organizations in Wikidata dump and stores them together with additional information in the output collection
 
     :param output_collection:
     :param input_collection:
@@ -242,7 +261,7 @@ def find_organizations(output_collection, input_collection):
     org_insert=0
     insert_count = 0
     bulk = output_collection.initialize_unordered_bulk_op()
-    print_info("Begining of Organization loop")
+    print_info("Beginning of Organization loop")
     output_collection.remove({"neClass": "ORG"})
     print_info("removed old orgs")
     organization_subclass=get_wikidata_item_tree_item_idsSPARQL([43229], backward_properties=[279])
