@@ -61,14 +61,17 @@ def get_wikidata_item_tree_item_idsSPARQL(root_items: typing.Iterable[int],
     #print(query)
 
     url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
-    data = get(url, params={'query': query, 'format': 'json'}).json()
 
     ids = []
-    for item in data['results']['bindings']:
-        this_id=item["WD_id"]["value"].split("/")[-1].lstrip("Q")
-        try:
-            this_id = int(this_id)
-            ids.append(this_id)
-        except ValueError:
-            print("ERROR\tWikidata Processor:get_wikidata_item_tree_item_idsSPARQL\tCould not convert data to an integer.", this_id)
+    try:
+        data = get(url, params={'query': query, 'format': 'json'}).json()
+        for item in data['results']['bindings']:
+            this_id=item["WD_id"]["value"].split("/")[-1].lstrip("Q")
+            try:
+                this_id = int(this_id)
+                ids.append(this_id)
+            except ValueError:
+                print("ERROR\tWikidata Processor:get_wikidata_item_tree_item_idsSPARQL\tCould not convert data to an integer.", this_id)
+    except Exception as e:
+        print(f"ERROR\tException occurred while trying to get data (url: {url} query {query})\nException: {e}")
     return ids

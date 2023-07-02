@@ -117,6 +117,30 @@ def get_de_sitelink(json_object: typing.Dict[str, str]) -> typing.Optional[str]:
 #################################################################################################################
 
 #########################
+#Event
+#########################
+
+def get_date_of_official_opening(json_object: typing.Dict[str, str]) -> typing.Optional[str]:
+    """Gets date of the official opening of an event
+    This function calls the functions get_datelife with thh property P1619
+
+    :param json_object: entity object <class 'dict'>
+    :return: date of the official opening <class 'string'>| None
+    """
+
+    date_of_official_opening=None
+    if "claims" in json_object:  # if claims are available for the item
+        claims = json_object["claims"]
+        if "P21" in claims:
+            for props in claims["P1619"]:
+                if props["mainsnak"]["property"] == "P1619":
+                    if "datavalue" in props["mainsnak"]:
+                        date_of_official_opening = props["mainsnak"]["datavalue"]["value"]["numeric-id"]
+    return date_of_official_opening
+
+
+
+#########################
 #Person
 #########################
 
@@ -137,6 +161,7 @@ def get_datedeath(json_object: typing.Dict[str, str]) -> typing.Optional[str]:
     :return: date ob death <class 'string'>| None
     """
     return get_datelife(json_object, "P570")
+
 
 
 def get_datelife(json_object: typing.Dict[str, str], P: str) -> typing.Optional[str]:
@@ -208,7 +233,7 @@ def get_gender(json_object: typing.Dict[str, str]) -> typing.Union[str, int, Non
     gender=gender_dict.get(gender_id,gender_id)
     return gender
 
-def get_occupation(json_object: typing.Dict[str, str]) -> str:
+def get_occupation(json_object: typing.Dict[str, str]) -> typing.List[str]:
     """Gets occupation of person ("P106")
 
     :param json_object: entity object <class 'dict'>
