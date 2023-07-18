@@ -111,7 +111,7 @@ def get_linksfromWikidata(WD_id, entry,collection):
     return entry
 
 def create_LODdictionary(entry,myclient,lang="en",):
-    """ creates url to Wikidata, Wikipedia an dbpedia (the last depends on langauge) and gets links to LOD
+    """ creates url to Wikidata, Wikipedia and dbpedia (the last depends on langauge) and gets links to LOD
     calls function 'get_linksfromWikidata'
 
 
