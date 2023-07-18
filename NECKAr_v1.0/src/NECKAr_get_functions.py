@@ -108,6 +108,36 @@ def get_de_sitelink(json_object: typing.Dict[str, str]) -> typing.Optional[str]:
         if "dewiki" in json_object["sitelinks"]:
             de_sitelink = json_object["sitelinks"]["dewiki"]["title"]
     return de_sitelink
+
+
+######################################################################################################
+# Common functions
+######################################################################################################
+
+def get_generic_id_prop(json_object: typing.Dict[str, str], prop: str, return_str: bool = True) ->\
+        typing.Optional[typing.Union[int, str]]:
+    """Gets entity object and a prop and returns the respective value, if exists
+
+    :param json_object: entity object <class 'dict'>
+    :param prop: property id (e.g. 'P1346') <class 'string'>
+    :param return_str: if True - returns the id as string (e.g. 'P361'), else int <class 'bool'>
+    :return: value of the property in the given entity <class 'string'>| <class 'int'>| None
+    """
+
+    res = None
+    if "claims" in json_object:  # if claims are available for the item
+        claims = json_object["claims"]
+        if prop in claims:
+            for props in claims[prop]:
+                if props["mainsnak"]["property"] == prop: #Note: this check is optional, another approach can be like the function get_geonamesID in this file. They both yield same results
+                    if "datavalue" in props["mainsnak"]:
+                        if return_str:
+                            res = props["mainsnak"]["datavalue"]["value"]["id"]
+                        else:
+                            res = props["mainsnak"]["datavalue"]["value"]["numeric-id"]
+    return res
+
+
 #################################################################################################################
 # Common fields written
 #################################################################################################################
@@ -121,24 +151,27 @@ def get_de_sitelink(json_object: typing.Dict[str, str]) -> typing.Optional[str]:
 #########################
 
 def get_date_of_official_opening(json_object: typing.Dict[str, str]) -> typing.Optional[str]:
-    """Gets date of the official opening of an event
-    This function calls the functions get_datelife with thh property P1619
+    """Gets date of the official opening of an event (wikidta property P1619)
+    ****************************************************************************************************
+    This function isn't implemented yet since it isn't needed. If want to implement in the future - will be similar
+    to get_datelife in terms of fields in props["mainsnak"]["datavalue"]["value"]
+    ****************************************************************************************************
 
     :param json_object: entity object <class 'dict'>
     :return: date of the official opening <class 'string'>| None
     """
 
-    date_of_official_opening=None
-    if "claims" in json_object:  # if claims are available for the item
-        claims = json_object["claims"]
-        if "P21" in claims:
-            for props in claims["P1619"]:
-                if props["mainsnak"]["property"] == "P1619":
-                    if "datavalue" in props["mainsnak"]:
-                        date_of_official_opening = props["mainsnak"]["datavalue"]["value"]["numeric-id"]
-    return date_of_official_opening
+    raise NotImplementedError
 
+def get_event_location(json_object: typing.Dict[str, str]) -> typing.Optional[str]:
+    """Gets the location of an event
+    This function calls the functions get_generic_id_prop with the property P276
 
+    :param json_object: entity object <class 'dict'>
+    :return: the location of an event <class 'string'>| None
+    """
+
+    return get_generic_id_prop(json_object, "P276")
 
 #########################
 #Person
@@ -146,7 +179,7 @@ def get_date_of_official_opening(json_object: typing.Dict[str, str]) -> typing.O
 
 def get_datebirth(json_object: typing.Dict[str, str]) -> typing.Optional[str]:
     """Gets date of birth of a person
-    This function calls the functions get_datelife with thh property P569
+    This function calls the functions get_datelife with the property P569
 
     :param json_object: entity object <class 'dict'>
     :return: date ob birth <class 'string'> | None
@@ -166,9 +199,9 @@ def get_datedeath(json_object: typing.Dict[str, str]) -> typing.Optional[str]:
 
 def get_datelife(json_object: typing.Dict[str, str], P: str) -> typing.Optional[str]:
     """Gets dates for person
-        this only returns a date if it is an explicit date of birth or dead, no latest possible date(P1326) or range (befor/after)
+        this only returns a date if it is an explicit date of birth or dead, no latest possible date(P1326) or range (before/after)
 
-    :param json_object: ntity object <class 'dict'>
+    :param json_object: entity object <class 'dict'>
     :param P: Property (defines if date of birth (P569) or date of death (P570) is searched)
     :return: date <class 'string'> | None
     """

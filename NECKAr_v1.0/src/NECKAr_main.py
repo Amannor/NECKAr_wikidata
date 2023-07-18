@@ -108,7 +108,6 @@ def find_persons(output_collection, input_collection):
     per_insert = 0
     insert_count = 0
     bulk = output_collection.initialize_unordered_bulk_op()
-    # bulk = output_collection.initializeUnorderedBulkOp()
     print_info("Find persons...")
     print_info("Remove all persons entries")
     output_collection.remove({"neClass": "PER"})
@@ -329,60 +328,50 @@ def find_organizations(output_collection, input_collection):
         bulk.execute()
 
 
-########################################################################################################################
-
-def find_events(output_collection, input_collection):
-    """Finds event in Wikidata dump and stores them together with additional information in the output collection
+def find_events(output_collection, input_collection, should_get_date_of_official_opening: bool = False):
+    """Finds events in Wikidata dump and stores them together with additional information in the output collection
 
        :param output_collection:
        :param input_collection:
+       :param should_get_date_of_official_opening: should get date_of_official_opening (don't turn on unless implemented)
+              <class 'bool'>
        :return: nothing, writes objects directly to MongoDB
        """
 
-    per_insert = 0
+    eve_insert = 0
     insert_count = 0
     bulk = output_collection.initialize_unordered_bulk_op()
-    # bulk = output_collection.initializeUnorderedBulkOp()
-    print_info("Find persons...")
-    print_info("Remove all persons entries")
+    print_info("Find events...")
+    print_info("Remove all events entries")
     output_collection.remove({"neClass": "EVE"})
     print_info("--- DONE")
-    event_cursor = input_collection.find(
-        {"$and": [{"type": "item"}, {"claims.P31.mainsnak.datavalue.value.numeric-id": 1656682}]})
+    event_subclass = get_wikidata_item_tree_item_idsSPARQL([1656682], backward_properties=[279])
+    event_cursor = input_collection.find({"$and": [{"type": "item"},
+                                                          {"claims.P31.mainsnak.datavalue.value.numeric-id": {
+                                                              "$in": event_subclass}}]})
+    # event_cursor = input_collection.find(
+    #     {"$and": [{"type": "item"}, {"claims.P31.mainsnak.datavalue.value.numeric-id": 1656682}]})
     print_info("Beginning of event-loop")
     for item in event_cursor:
         entry = write_functions.write_common_fields(item)
         entry["neClass"] = "EVE"
 
-        # date of birth
-        dooo = get_functions.get_date_of_official_opening(item) #P1619
-        if dooo:
-            entry["date_of_official_opening"] = dooo
-        # date of death
-        dod = get_functions.get_datedeath(item)
-        if dod:
-            entry["date_death"] = dod
-        # # gender
-        # gender = get_functions.get_gender(item)
-        # if gender:
-        #     entry["gender"] = gender
-        # # occupation
-        # occupation = get_functions.get_occupation(item)
-        # if len(occupation) > 0:
-        #     entry["occupation"] = occupation
-        # # aliases, alternative names
-        # alias = get_functions.get_alias_list(item)
-        # if len(alias) > 0:
-        #     entry["alias"] = alias
+        if should_get_date_of_official_opening:
+            dooo = get_functions.get_date_of_official_opening(item)
+            if dooo:
+                entry["date_of_official_opening"] = dooo
+        event_location = get_functions.get_event_location(item)
+        if event_location:
+            entry["event_location"] = event_location
 
         wdid = entry["id"]
         doc = output_collection.find_one({"id": wdid})
         if (not doc or doc["neClass"] != "EVE"):
-            insert_count += 1
+            insert_count += 1 #TODO - Q79838 gets here erroneously (it's an accordion!) https://www.wikidata.org/wiki/Q79838
             bulk.insert(entry)
         if insert_count == 1000:
-            per_insert += 1
-            print_info("EVE " + str(per_insert * 1000) + "events written")
+            eve_insert += 1
+            print_info("EVE " + str(eve_insert * 1000) + "events written")
             sys.stdout.flush()
             bulk.execute()
             bulk = output_collection.initialize_unordered_bulk_op()
@@ -390,6 +379,48 @@ def find_events(output_collection, input_collection):
     if insert_count > 0:
         bulk.execute()
 
+def find_languages(output_collection, input_collection):
+    """Finds language in Wikidata dump and stores them together with additional information in the output collection
+
+       :param output_collection:
+       :param input_collection:
+       :return: nothing, writes objects directly to MongoDB
+       """
+
+    ang_insert = 0
+    insert_count = 0
+    bulk = output_collection.initialize_unordered_bulk_op()
+    print_info("Find languages...")
+    print_info("Remove all languages entries")
+    output_collection.remove({"neClass": "ANG"})
+    print_info("--- DONE")
+    # event_subclass = get_wikidata_item_tree_item_idsSPARQL([1656682], backward_properties=[279])
+    # event_cursor = input_collection.find({"$and": [{"type": "item"},
+    #                                                       {"claims.P31.mainsnak.datavalue.value.numeric-id": {
+    #                                                           "$in": event_subclass}}]})
+    lang_cursor = input_collection.find(
+        {"$and": [{"type": "item"}, {"claims.P31.mainsnak.datavalue.value.numeric-id": 315}]})
+    print_info("Beginning of language-loop")
+    for item in lang_cursor:
+        entry = write_functions.write_common_fields(item)
+        entry["neClass"] = "ANG"
+
+        wdid = entry["id"]
+        doc = output_collection.find_one({"id": wdid})
+        if (not doc or doc["neClass"] != "ANG"):
+            insert_count += 1
+            bulk.insert(entry)
+        if insert_count == 1000:
+            ang_insert += 1
+            print_info("ANG " + str(ang_insert * 1000) + "languages written")
+            sys.stdout.flush()
+            bulk.execute()
+            bulk = output_collection.initialize_unordered_bulk_op()
+            insert_count = 0
+    if insert_count > 0:
+        bulk.execute()
+
+########################################################################################################################
 
 if __name__ == "__main__":
     """NECKAr: Named Entity Classifier for Wikidata
@@ -411,3 +442,5 @@ if __name__ == "__main__":
         find_organizations(output_collection, input_collection)
     if config.getboolean('Search_Flags', 'event'):
         find_events(output_collection, input_collection)
+    if config.getboolean('Search_Flags', 'language'):
+        find_languages(output_collection, input_collection)
