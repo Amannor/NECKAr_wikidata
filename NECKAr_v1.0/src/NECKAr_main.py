@@ -49,14 +49,16 @@ LABELS_TO_WIKIDATA_INT_IDS = {
     'GPE': ['LOC'],
     # Stands for GeoPolitical Entitiy. Most are locations (LOC) but not only so need to add more stuff to the list
     'INFORMAL': [],  # ['P1449'],
-    'LOC': ['Q115095765'],
+    'LOC': ['Q115095765'], #This wikidata id isn't used, since relying on existing NECKAr code (function find_locations)
     'MISC': [],  # Should be ignored until further notice, here for completeness
     'ORG': ['Q43229'],
     'PER': ['Q5'],
     'TIMEX': ['Q11471'],
-    'TTL': ['Q214339', 'Q177053'],
+    'TTL': ['Q214339', 'Q177053'], #Note - only taking 'role' ('Q214339')
     'WOA': ['Q386724']
 }
+
+
 
 
 def print_info(info):
@@ -349,8 +351,6 @@ def find_events(output_collection, input_collection, should_get_date_of_official
     event_cursor = input_collection.find({"$and": [{"type": "item"},
                                                           {"claims.P31.mainsnak.datavalue.value.numeric-id": {
                                                               "$in": event_subclass}}]})
-    # event_cursor = input_collection.find(
-    #     {"$and": [{"type": "item"}, {"claims.P31.mainsnak.datavalue.value.numeric-id": 1656682}]})
     print_info("Beginning of event-loop")
     for item in event_cursor:
         entry = write_functions.write_common_fields(item)
@@ -380,7 +380,7 @@ def find_events(output_collection, input_collection, should_get_date_of_official
         bulk.execute()
 
 def find_languages(output_collection, input_collection):
-    """Finds language in Wikidata dump and stores them together with additional information in the output collection
+    """Finds languages in Wikidata dump and stores them together with additional information in the output collection
 
        :param output_collection:
        :param input_collection:
@@ -394,10 +394,6 @@ def find_languages(output_collection, input_collection):
     print_info("Remove all languages entries")
     output_collection.remove({"neClass": "ANG"})
     print_info("--- DONE")
-    # event_subclass = get_wikidata_item_tree_item_idsSPARQL([1656682], backward_properties=[279])
-    # event_cursor = input_collection.find({"$and": [{"type": "item"},
-    #                                                       {"claims.P31.mainsnak.datavalue.value.numeric-id": {
-    #                                                           "$in": event_subclass}}]})
     lang_cursor = input_collection.find(
         {"$and": [{"type": "item"}, {"claims.P31.mainsnak.datavalue.value.numeric-id": 315}]})
     print_info("Beginning of language-loop")
@@ -420,7 +416,201 @@ def find_languages(output_collection, input_collection):
     if insert_count > 0:
         bulk.execute()
 
+def find_brands(output_collection, input_collection):
+    """Finds brands in Wikidata dump and stores them together with additional information in the output collection
+
+       :param output_collection:
+       :param input_collection:
+       :return: nothing, writes objects directly to MongoDB
+       """
+
+    duc_insert = 0
+    insert_count = 0
+    bulk = output_collection.initialize_unordered_bulk_op()
+    print_info("Find brands...")
+    print_info("Remove all brands entries")
+    output_collection.remove({"neClass": "DUC"})
+    print_info("--- DONE")
+    brand_cursor = input_collection.find(
+        {"$and": [{"type": "item"}, {"claims.P31.mainsnak.datavalue.value.numeric-id": 431289}]})
+    print_info("Beginning of brand-loop")
+    for item in brand_cursor:
+        entry = write_functions.write_common_fields(item)
+        entry["neClass"] = "DUC"
+
+        wdid = entry["id"]
+        doc = output_collection.find_one({"id": wdid})
+        if (not doc or doc["neClass"] != "DUC"):
+            insert_count += 1
+            bulk.insert(entry)
+        if insert_count == 1000:
+            duc_insert += 1
+            print_info("DUC " + str(duc_insert * 1000) + "brands written")
+            sys.stdout.flush()
+            bulk.execute()
+            bulk = output_collection.initialize_unordered_bulk_op()
+            insert_count = 0
+    if insert_count > 0:
+        bulk.execute()
+
+def find_facilities(output_collection, input_collection):
+    """Finds facilities in Wikidata dump and stores them together with additional information in the output collection
+
+       :param output_collection:
+       :param input_collection:
+       :return: nothing, writes objects directly to MongoDB
+       """
+
+    fac_insert = 0
+    insert_count = 0
+    bulk = output_collection.initialize_unordered_bulk_op()
+    print_info("Find facilities...")
+    print_info("Remove all facilities entries")
+    output_collection.remove({"neClass": "FAC"})
+    print_info("--- DONE")
+    facility_subclass = get_wikidata_item_tree_item_idsSPARQL([13226383], backward_properties=[279])
+    facility_cursor = input_collection.find({"$and": [{"type": "item"},
+                                                          {"claims.P31.mainsnak.datavalue.value.numeric-id": {
+                                                              "$in": facility_subclass}}]})
+
+    print_info("Beginning of facility-loop")
+    for item in facility_cursor:
+        entry = write_functions.write_common_fields(item)
+        entry["neClass"] = "FAC"
+
+        wdid = entry["id"]
+        doc = output_collection.find_one({"id": wdid})
+        if (not doc or doc["neClass"] != "FAC"):
+            insert_count += 1
+            bulk.insert(entry)
+        if insert_count == 1000:
+            fac_insert += 1
+            print_info("FAC " + str(fac_insert * 1000) + "facilities written")
+            sys.stdout.flush()
+            bulk.execute()
+            bulk = output_collection.initialize_unordered_bulk_op()
+            insert_count = 0
+    if insert_count > 0:
+        bulk.execute()
+
+
+def find_time_instances(output_collection, input_collection):
+    """Finds time instances in Wikidata dump and stores them together with additional information in the output collection
+
+       :param output_collection:
+       :param input_collection:
+       :return: nothing, writes objects directly to MongoDB
+       """
+
+    timex_insert = 0
+    insert_count = 0
+    bulk = output_collection.initialize_unordered_bulk_op()
+    print_info("Find time instances...")
+    print_info("Remove all time instances entries")
+    output_collection.remove({"neClass": "TIMEX"})
+    print_info("--- DONE")
+    time_subclass = get_wikidata_item_tree_item_idsSPARQL([11471], backward_properties=[279])
+    time_cursor = input_collection.find({"$and": [{"type": "item"},
+                                                          {"claims.P31.mainsnak.datavalue.value.numeric-id": {
+                                                              "$in": time_subclass}}]})
+
+    print_info("Beginning of time-loop")
+    for item in time_cursor:
+        entry = write_functions.write_common_fields(item)
+        entry["neClass"] = "TIMEX"
+
+        wdid = entry["id"]
+        doc = output_collection.find_one({"id": wdid})
+        if (not doc or doc["neClass"] != "TIMEX"):
+            insert_count += 1
+            bulk.insert(entry)
+        if insert_count == 1000:
+            timex_insert += 1
+            print_info("TIMEX " + str(timex_insert * 1000) + "time instances written")
+            sys.stdout.flush()
+            bulk.execute()
+            bulk = output_collection.initialize_unordered_bulk_op()
+            insert_count = 0
+    if insert_count > 0:
+        bulk.execute()
+
 ########################################################################################################################
+
+def find_titles(output_collection, input_collection):
+    """Finds titles in Wikidata dump and stores them together with additional information in the output collection
+
+       :param output_collection:
+       :param input_collection:
+       :return: nothing, writes objects directly to MongoDB
+       """
+
+    ttl_insert = 0
+    insert_count = 0
+    bulk = output_collection.initialize_unordered_bulk_op()
+    print_info("Find titles...")
+    print_info("Remove all titles entries")
+    output_collection.remove({"neClass": "TTL"})
+    print_info("--- DONE")
+    title_subclass = get_wikidata_item_tree_item_idsSPARQL([214339], backward_properties=[279])
+    title_cursor = input_collection.find({"$and": [{"type": "item"},
+                                                          {"claims.P31.mainsnak.datavalue.value.numeric-id": {
+                                                              "$in": title_subclass}}]})
+    print_info("Beginning of title-loop")
+    for item in title_cursor:
+        entry = write_functions.write_common_fields(item)
+        entry["neClass"] = "TTL"
+
+        wdid = entry["id"]
+        doc = output_collection.find_one({"id": wdid})
+        if (not doc or doc["neClass"] != "TTL"):
+            insert_count += 1  #TODO - Q20532, Q63440, Q31, Q78389 (probably because it's an instance of ´prince´) are mistakenly added here
+            bulk.insert(entry)
+        if insert_count == 1000:
+            ttl_insert += 1
+            print_info("TTL " + str(ttl_insert * 1000) + "titles written")
+            sys.stdout.flush()
+            bulk.execute()
+            bulk = output_collection.initialize_unordered_bulk_op()
+            insert_count = 0
+    if insert_count > 0:
+        bulk.execute()
+def find_works(output_collection, input_collection):
+    """Finds works in Wikidata dump and stores them together with additional information in the output collection
+
+       :param output_collection:
+       :param input_collection:
+       :return: nothing, writes objects directly to MongoDB
+       """
+
+    woa_insert = 0
+    insert_count = 0
+    bulk = output_collection.initialize_unordered_bulk_op()
+    print_info("Find works...")
+    print_info("Remove all works entries")
+    output_collection.remove({"neClass": "WOA"})
+    print_info("--- DONE")
+    work_cursor = input_collection.find(
+        {"$and": [{"type": "item"}, {"claims.P31.mainsnak.datavalue.value.numeric-id": 38672}]})
+    print_info("Beginning of work-loop")
+    for item in work_cursor:
+        entry = write_functions.write_common_fields(item)
+        entry["neClass"] = "WOA"
+
+        wdid = entry["id"]
+        doc = output_collection.find_one({"id": wdid})
+        if (not doc or doc["neClass"] != "WOA"):
+            insert_count += 1 #TODO - Q38450, Q38666, Q38887 are mistakenly added here
+            bulk.insert(entry)
+        if insert_count == 1000:
+            woa_insert += 1
+            print_info("WOA " + str(woa_insert * 1000) + "works written")
+            sys.stdout.flush()
+            bulk.execute()
+            bulk = output_collection.initialize_unordered_bulk_op()
+            insert_count = 0
+    if insert_count > 0:
+        bulk.execute()
+
 
 if __name__ == "__main__":
     """NECKAr: Named Entity Classifier for Wikidata
@@ -444,3 +634,13 @@ if __name__ == "__main__":
         find_events(output_collection, input_collection)
     if config.getboolean('Search_Flags', 'language'):
         find_languages(output_collection, input_collection)
+    if config.getboolean('Search_Flags', 'brand'):
+        find_brands(output_collection, input_collection)
+    if config.getboolean('Search_Flags', 'facility'):
+        find_facilities(output_collection, input_collection)
+    if config.getboolean('Search_Flags', 'time'):
+        find_time_instances(output_collection, input_collection)
+    if config.getboolean('Search_Flags', 'title'):
+        find_titles(output_collection, input_collection)
+    if config.getboolean('Search_Flags', 'work'):
+        find_works(output_collection, input_collection)
